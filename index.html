@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice Editor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head><body>
+<div class="top"><strong>Invoice Editor</strong><small>JCB rental billing · fill the steps, then save as PDF or image</small></div>
+<div class="tabs" id="tabs">
+ <button data-t="1" class="on">1. Company</button><button data-t="2">2. Work Log</button>
+ <button data-t="3">3. Costs</button><button data-t="4">4. Bank</button><button data-t="5">5. Preview &amp; PDF</button>
+</div>
+
+<div class="pane on" id="p1">
+ <div class="card"><h3>Select saved company</h3>
+  <div class="row"><select class="f" id="coSel" style="flex:1"></select>
+  <button class="btn rd" onclick="delPreset('co')">Delete</button></div></div>
+ <div class="card"><h3>Company details</h3>
+  <label>Tagline (top line)</label><input class="f" data-k="tag">
+  <label>Company name</label><input class="f" data-k="co">
+  <label>Address</label><input class="f" data-k="addr">
+  <label>Phone / GPay / WhatsApp line</label><input class="f" data-k="ph">
+  <div class="g"><div><label>Invoice date</label><input class="f" type="date" data-k="date"></div>
+  <div><label>Invoice title</label><input class="f" data-k="title"></div></div>
+  <div class="row" style="margin-top:12px"><button class="btn" onclick="savePreset('co')">Save as new company preset</button></div></div>
+ <div class="card"><h3>Customer details</h3>
+  <label>Customer name</label><input class="f" data-k="cn">
+  <label>Address</label><input class="f" data-k="ca">
+  <div class="g"><div><label>Phone</label><input class="f" data-k="cp"></div>
+  <div><label>Site / Location</label><input class="f" data-k="cs"></div></div>
+  <label>Invoice no.</label><input class="f" data-k="inv"></div>
+ <div class="nav"><button class="btn rd" onclick="resetAll()">New invoice</button><button class="btn g1" onclick="go(2)">Next →</button></div>
+</div>
+
+<div class="pane" id="p2">
+ <div class="card"><h3>Work log</h3><p style="font-size:12px;color:#666;margin:0 0 8px">Pick the date (calendar), start and end time, then tick the breaks taken. Break time is deducted from the hours; you can still edit hours by hand.</p>
+  <div class="g" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">
+   <div><label>Breakfast break (min)</label><input class="f" type="number" data-k="bkb"></div>
+   <div><label>Lunch break (min)</label><input class="f" type="number" data-k="bkl"></div>
+   <div><label>Dinner break (min)</label><input class="f" type="number" data-k="bkd"></div></div><div id="wl"></div>
+  <div class="row"><button class="btn" onclick="addRow()">+ Add Day</button></div>
+  <p class="sum">Total hours: <b id="th">0</b></p></div>
+ <div class="nav"><button class="btn" onclick="go(1)">← Back</button><button class="btn g1" onclick="go(3)">Next →</button></div>
+</div>
+
+<div class="pane" id="p3">
+ <div class="card"><h3>Rates &amp; deductions</h3>
+  <div class="g"><div><label>Hourly rate (₹)</label><input class="f" type="number" data-k="rate"></div>
+  <div><label>Driver beta per day (₹)</label><input class="f" type="number" data-k="beta"></div>
+  <div><label>Beta days</label><input class="f" type="number" data-k="days"></div>
+  <div><label>Deduction amount (₹)</label><input class="f" type="number" data-k="ded"></div>
+  <div><label>Minimum charge (₹)</label><input class="f" type="number" data-k="minAmt"></div>
+  <div><label>&nbsp;</label><label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" data-k="minOn"> Apply minimum charge</label></div></div>
+  <label>Beta label</label><input class="f" data-k="betaLbl">
+  <label>Deduction label</label><input class="f" data-k="dedLbl"></div>
+ <div class="card"><h3>Calculated</h3>
+  <div class="calc"><span>Work charges</span><b id="s1"></b><span>Driver beta</span><b id="s2"></b><span>Initial total</span><b id="s3"></b><span class="due">Amount due</span><b id="s4" class="due"></b></div></div>
+ <div class="nav"><button class="btn" onclick="go(2)">← Back</button><button class="btn g1" onclick="go(4)">Next →</button></div>
+</div>
+
+<div class="pane" id="p4">
+ <div class="card"><h3>Select saved bank account</h3>
+  <div class="row"><select class="f" id="bkSel" style="flex:1"></select>
+  <button class="btn rd" onclick="delPreset('bk')">Delete</button></div></div>
+ <div class="card"><h3>Bank details</h3>
+  <label>Bank name</label><input class="f" data-k="bn">
+  <label>A/C holder name</label><input class="f" data-k="bh">
+  <label>A/C number</label><input class="f" data-k="ba">
+  <div class="g"><div><label>IFSC</label><input class="f" data-k="bi"></div>
+  <div><label>GPay number</label><input class="f" data-k="bg"></div></div>
+  <label>Signature line ("For ...")</label><input class="f" data-k="forco">
+  <div class="row" style="margin-top:12px"><button class="btn" onclick="savePreset('bk')">Save as new bank preset</button></div></div>
+ <div class="nav"><button class="btn" onclick="go(3)">← Back</button><button class="btn g1" onclick="go(5)">Preview →</button></div>
+</div>
+
+<div class="pane" id="p5" style="max-width:none">
+ <div class="row noprint" style="justify-content:center;margin-bottom:8px">
+  <button class="btn g1" id="bPdf" onclick="pdf()">⬇ PDF</button>
+  <button class="btn g1" id="bImg" onclick="img()">🖼 Image</button>
+  <button class="btn" id="bShare" onclick="share()" style="display:none">Share</button>
+  <button class="btn" onclick="window.print()">Print</button>
+  <button class="btn" onclick="go(1)">Edit details</button></div>
+ <div class="wrap"><div id="scaleBox"><div id="scaler"><div id="inv"></div></div></div></div>
+</div>
+
+<div class="bar" id="bar"><span>Hours<b id="bh2">0</b></span><span>Amount due<b id="bd">₹0</b></span></div>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body></html>

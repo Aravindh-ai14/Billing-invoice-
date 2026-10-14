@@ -1,0 +1,8 @@
+{
+  "name": "invoice-app",
+  "version": "1.0.0",
+  "description": "JCB rental invoice editor (A.M. Earth Movers)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "extract": "node tools/extract-assets.js" },
+  "dependencies": { "express": "^4.19.2", "pg": "^8.12.0" }
+}
